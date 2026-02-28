@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALEC - Appliance Level Energy Consumption</title>
+
+    <!-- Google Fonts: Poppins & Inter -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (CDN for quick development) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        primary: '#00f2fe',
+                        secondary: '#4facfe',
+                        accent: '#a855f7',
+                        success: '#10b981',
+                        dark: '#0f172a',
+                        cardBg: 'rgba(15, 23, 42, 0.65)',
+                        cardBorder: 'rgba(255, 255, 255, 0.15)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SweetAlert2 (for beautiful alerts) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Particles.js -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/tsparticles-preset-bubbles@2/tsparticles.preset.bubbles.bundle.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body
+    class="bg-dark text-slate-100 min-h-screen flex flex-col font-sans relative overflow-x-hidden selection:bg-primary selection:text-dark">
+
+    <!-- Global Background Animation Container -->
+    <div id="tsparticles" class="fixed inset-0 z-[-1] pointer-events-none"></div>
+
+    <!-- Gradient Orbs for background depth -->
+    <div
+        class="fixed top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[120px] opacity-40 z-[-1] animate-pulse">
+    </div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-600 rounded-full mix-blend-screen filter blur-[150px] opacity-40 z-[-1] animate-pulse"
+        style="animation-delay: 2s;"></div>
+
+    <!-- Navbar (Sticky & Glassmorphism) -->
+    <nav class="sticky top-0 z-50 glass-navbar transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="window.location.href='/'">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-lg animate-float">
+                        <i class="fa-solid fa-bolt text-xl"></i>
+                    </div>
+                    <span
+                        class="font-bold text-2xl tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">ALEC</span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-6">
+                        <a href="/" class="nav-link px-3 py-2 rounded-md font-medium group transition-all">
+                            <i class="fa-solid fa-house mr-2 group-hover:text-primary transition-colors"></i>Home
+                        </a>
+                        <a href="/upload" class="nav-link px-3 py-2 rounded-md font-medium group transition-all">
+                            <i
+                                class="fa-solid fa-cloud-arrow-up mr-2 group-hover:text-primary transition-colors"></i>Upload
+                        </a>
+                        <a href="/prediction" class="nav-link px-3 py-2 rounded-md font-medium group transition-all">
+                            <i
+                                class="fa-solid fa-calculator mr-2 group-hover:text-primary transition-colors"></i>Prediction
+                        </a>
+                        <a href="/charts" class="nav-link px-3 py-2 rounded-md font-medium group transition-all">
+                            <i class="fa-solid fa-chart-pie mr-2 group-hover:text-primary transition-colors"></i>Charts
+                        </a>
+                        <a href="/performance" class="nav-link px-3 py-2 rounded-md font-medium group transition-all">
+                            <i
+                                class="fa-solid fa-chart-network mr-2 group-hover:text-primary transition-colors"></i>Performance
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+                        class="bg-cardBg items-center justify-center p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white transition-colors border border-cardBorder">
+                        <span class="sr-only">Open main menu</span>
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="hidden md:hidden glass-panel border-t border-cardBorder mt-2" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/"
+                    class="text-slate-200 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"><i
+                        class="fa-solid fa-house w-6"></i> Home</a>
+                <a href="/upload"
+                    class="text-slate-200 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"><i
+                        class="fa-solid fa-cloud-arrow-up w-6"></i> Upload</a>
+                <a href="/prediction"
+                    class="text-slate-200 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"><i
+                        class="fa-solid fa-calculator w-6"></i> Prediction</a>
+                <a href="/charts"
+                    class="text-slate-200 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"><i
+                        class="fa-solid fa-chart-pie w-6"></i> Charts</a>
+                <a href="/performance"
+                    class="text-slate-200 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"><i
+                        class="fa-solid fa-chart-network w-6"></i> Performance</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main
+        class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto relative z-10 page-transition"
+        id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-cardBorder py-6 mt-auto z-10">
+        <div
+            class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400 font-inter">
+            <div class="flex items-center gap-2 text-primary/80 font-medium">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Final Year Project 2026</span>
+            </div>
+            <div class="text-center">
+                Built with using Next-Gen TGCN Models
+            </div>
+            <div class="flex gap-4">
+                <a href="https://github.com/subalakshmy757" target="_blank" class="hover:text-white transition-colors duration-300 transform hover:scale-110"><i
+                        class="fa-brands fa-github text-lg"></i></a>
+                <a href="#" class="hover:text-primary transition-colors duration-300 transform hover:scale-110"><i
+                        class="fa-brands fa-linkedin text-lg"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Scripts -->
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('shadow-lg', 'bg-dark/80', 'backdrop-blur-xl', 'border-b', 'border-white/10');
+            } else {
+                nav.classList.remove('shadow-lg', 'bg-dark/80', 'backdrop-blur-xl', 'border-b', 'border-white/10');
+            }
+        });
+
+        // Initialize Particles.js (Bubbles/Nodes effect)
+        document.addEventListener("DOMContentLoaded", function () {
+            tsParticles.load("tsparticles", {
+                background: {
+                    color: {
+                        value: "transparent",
+                    },
+                },
+                fpsLimit: 60,
+                interactivity: {
+                    events: {
+                        onHover: {
+                            enable: true,
+                            mode: "grab",
+                        },
+                        resize: true,
+                    },
+                    modes: {
+                        grab: {
+                            distance: 150,
+                            links: {
+                                opacity: 0.3,
+                            },
+                        },
+                    },
+                },
+                particles: {
+                    color: {
+                        value: ["#00f2fe", "#4facfe", "#a855f7"],
+                    },
+                    links: {
+                        color: "#4facfe",
+                        distance: 150,
+                        enable: true,
+                        opacity: 0.2,
+                        width: 1,
+                    },
+                    move: {
+                        direction: "none",
+                        enable: true,
+                        outModes: {
+                            default: "bounce",
+                        },
+                        random: true,
+                        speed: 1,
+                        straight: false,
+                    },
+                    number: {
+                        density: {
+                            enable: true,
+                            area: 800,
+                        },
+                        value: 40,
+                    },
+                    opacity: {
+                        value: 0.4,
+                    },
+                    shape: {
+                        type: "circle",
+                    },
+                    size: {
+                        value: { min: 1, max: 4 },
+                    },
+                },
+                detectRetina: true,
+            });
+
+            // Trigger page load animation
+            const content = document.getElementById('main-content');
+            setTimeout(() => {
+                content.classList.add('opacity-100', 'translate-y-0');
+            }, 100);
+        });
+    </script>
+</body>
+
+</html>

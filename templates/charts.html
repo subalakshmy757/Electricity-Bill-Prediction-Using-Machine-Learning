@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-6xl mx-auto mb-10">
+    <div class="text-center mb-10">
+        <h2 class="text-3xl font-bold text-white mb-2"><i class="fa-solid fa-chart-line text-primary mr-2"></i>
+            Interactive Analytics Dashboard</h2>
+        <p class="text-slate-400">Deep dive into the spatial-temporal energy consumption patterns.</p>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Bar Chart (Interactive) -->
+        <div
+            class="glass-card p-6 flex flex-col relative overflow-hidden group hover:border-primary/50 transition-colors">
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+            </div>
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 class="text-lg font-semibold text-slate-200">
+                    <i class="fa-solid fa-chart-column text-primary mr-2"></i> Average Appliance Usage
+                </h3>
+            </div>
+            <div class="relative flex-grow min-h-[300px] z-10 w-full">
+                <!-- Fallback image from backend -->
+                <img src="/static/images/bar_chart.png" alt="Bar Chart" id="fallback-bar"
+                    class="hidden rounded-lg mx-auto w-full h-full object-cover opacity-80"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="hidden text-center text-red-400 mt-10">Chart not generated from backend yet. Initializing
+                    interactive mockup...</div>
+
+                <!-- Interactive Chart.js Canvas -->
+                <canvas id="applianceBarChart" class="w-full h-full absolute inset-0"></canvas>
+            </div>
+        </div>
+
+        <!-- Line Chart (Actual vs Predicted) -->
+        <div
+            class="glass-card p-6 flex flex-col relative overflow-hidden group hover:border-secondary/50 transition-colors">
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+            </div>
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 class="text-lg font-semibold text-slate-200">
+                    <i class="fa-solid fa-chart-area text-secondary mr-2"></i> Actual vs Predicted Trend
+                </h3>
+                <span class="text-xs px-2 py-1 rounded bg-secondary/20 text-secondary border border-secondary/30">Last
+                    24 Hours</span>
+            </div>
+            <div class="relative flex-grow min-h-[300px] z-10 w-full">
+                <canvas id="trendLineChart" class="w-full h-full absolute inset-0"></canvas>
+            </div>
+        </div>
+
+        <!-- Heatmap (Backend Static + Styled) -->
+        <div
+            class="glass-card p-6 flex flex-col col-span-1 lg:col-span-2 relative overflow-hidden group hover:border-accent/50 transition-colors">
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+            </div>
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 class="text-lg font-semibold text-slate-200">
+                    <i class="fa-solid fa-network-wired text-accent mr-2"></i> Learnable Adjacency Matrix (Spatial
+                    Dependencies)
+                </h3>
+                <span class="text-xs px-2 py-1 rounded bg-accent/20 text-accent border border-accent/30 font-mono">TGCN
+                    Graph</span>
+            </div>
+            <div
+                class="relative flex-grow flex items-center justify-center min-h-[400px] z-10 bg-slate-900/50 rounded-xl overflow-hidden border border-slate-700/50">
+                <!-- This uses the generated seaborn heatmap from app.py -->
+                <img src="/static/images/heatmap.png" alt="Adjacency Matrix Heatmap"
+                    class="w-full h-auto max-h-[400px] object-contain mix-blend-screen"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+                <!-- Fallback empty state if not generated -->
+                <div class="hidden flex-col items-center justify-center text-slate-500 w-full h-full p-10">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-slate-600"></i>
+                    <p>Training model to generate spatial matrix...</p>
+                    <p class="text-sm mt-2">Upload dataset to visualize the correlation graph.</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-400 mt-4 text-center">Nodes exhibiting higher correlation weights influence
+                each other's predicted power consumption heavily in the graph network.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Global Chart Defaults
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // 1. Interactive Bar Chart Initialization
+        const barCtx = document.getElementById('applianceBarChart').getContext('2d');
+        // Hide fallback image if chart.js loads successfully
+        document.getElementById('fallback-bar').style.display = 'none';
+
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Fan', 'Fridge', 'AC', 'TV', 'Monitor', 'Motor'],
+                datasets: [{
+                    label: 'Avg Daily Usage (kWh)',
+                    // Representative values to demonstrate interactions
+                    data: [1.2, 3.5, 8.4, 2.1, 0.8, 1.5],
+                    backgroundColor: [
+                        'rgba(0, 242, 254, 0.6)',
+                        'rgba(79, 172, 254, 0.6)',
+                        'rgba(168, 85, 247, 0.6)',
+                        'rgba(16, 185, 129, 0.6)',
+                        'rgba(245, 158, 11, 0.6)',
+                        'rgba(239, 68, 68, 0.6)'
+                    ],
+                    borderColor: [
+                        '#00f2fe', '#4facfe', '#a855f7', '#10b981', '#f59e0b', '#ef4444'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    hoverBackgroundColor: [
+                        '#00f2fe', '#4facfe', '#a855f7', '#10b981', '#f59e0b', '#ef4444'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // 2. Interactive Line Chart (Actual vs Predicted)
+        const lineCtx = document.getElementById('trendLineChart').getContext('2d');
+
+        // Generate dummy time series data for 24 hours
+        const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+        const actualData = [2, 3, 2, 1.5, 1, 1.2, 3, 6, 8, 7.5, 6, 5.5, 5, 4.5, 5, 6, 8, 10, 12, 11.5, 9, 6, 4, 2.5];
+        // Add some smooth noise to actual for predicted
+        const predictedData = actualData.map(v => v + (Math.random() - 0.5) * 1.5);
+
+        // Gradient finish for area chart
+        const gradientActual = lineCtx.createLinearGradient(0, 0, 0, 400);
+        gradientActual.addColorStop(0, 'rgba(79, 172, 254, 0.4)');
+        gradientActual.addColorStop(1, 'rgba(79, 172, 254, 0.0)');
+
+        const gradientPredicted = lineCtx.createLinearGradient(0, 0, 0, 400);
+        gradientPredicted.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+        gradientPredicted.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Actual Consumption',
+                        data: actualData,
+                        borderColor: '#4facfe',
+                        backgroundColor: gradientActual,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#4facfe',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#4facfe',
+                        fill: true,
+                        tension: 0.4 // smooth curves
+                    },
+                    {
+                        label: 'TGCN Predicted',
+                        data: predictedData,
+                        borderColor: '#a855f7',
+                        backgroundColor: gradientPredicted,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#a855f7',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#a855f7',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#cbd5e1', usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        title: { display: true, text: 'Energy (kWh)', color: '#64748b' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                        ticks: { maxTicksLimit: 12 }
+                    }
+                },
+                animation: {
+                    duration: 2500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

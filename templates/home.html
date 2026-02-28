@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center text-center w-full min-h-[70vh]">
+    <div class="relative w-full max-w-4xl mx-auto z-10">
+        <!-- Badge -->
+        <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-8 border border-primary/30 shadow-[0_0_15px_rgba(0,242,254,0.3)] animate-float">
+            <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+            <span class="text-sm font-medium text-slate-200 uppercase tracking-wider">Next-Gen Prediction Engine
+                Active</span>
+        </div>
+
+        <!-- Typography Heading -->
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white drop-shadow-lg">
+            Appliance Level
+            <br />
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent">Energy
+                Consumption</span>
+        </h1>
+
+        <!-- Typing Effect Container -->
+        <div class="h-[60px] md:h-[40px] mb-6 flex items-center justify-center">
+            <p class="text-xl md:text-2xl text-slate-300 font-light">
+                <span id="typed-text"></span><span class="typing-cursor"></span>
+            </p>
+        </div>
+
+        <p class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Harnessing the power of a <strong class="text-white font-semibold">Temporal-Spatial Graph Convolutional
+                Network (TGCN)</strong>
+            with a learnable adjacency matrix to accurately forecast individual appliance power usage and optimize
+            residential energy efficiency.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <a href="/upload" class="w-full sm:w-auto">
+                <button
+                    class="w-full sm:w-auto btn-outline hover:ring-2 ring-primary/50 text-base md:text-lg py-3 px-8 transform hover:scale-[1.02]">
+                    <i class="fa-solid fa-database text-primary"></i> Upload Dataset
+                </button>
+            </a>
+            <a href="/prediction" class="w-full sm:w-auto">
+                <button
+                    class="w-full sm:w-auto btn-primary hover:shadow-[0_0_30px_rgba(0,242,254,0.6)] text-base md:text-lg py-3 px-8 transform hover:scale-[1.05]">
+                    Start Prediction <i
+                        class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </a>
+        </div>
+
+        <!-- Status Indicator Cards -->
+        <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            <div
+                class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center text-center transform transition-all hover:-translate-y-1 hover:border-primary/50">
+                <i class="fa-solid fa-microchip text-primary text-2xl mb-2"></i>
+                <h4 class="text-sm text-slate-400">Architecture</h4>
+                <p class="font-semibold text-slate-100">TGCN + GRU</p>
+            </div>
+            <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center text-center transform transition-all hover:-translate-y-1 hover:border-secondary/50"
+                style="animation-delay: 0.1s;">
+                <i class="fa-solid fa-diagram-project text-secondary text-2xl mb-2"></i>
+                <h4 class="text-sm text-slate-400">Graph Matrix</h4>
+                <p class="font-semibold text-slate-100">Learnable A</p>
+            </div>
+            <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center text-center transform transition-all hover:-translate-y-1 hover:border-accent/50"
+                style="animation-delay: 0.2s;">
+                <i class="fa-solid fa-plug-circle-bolt text-accent text-2xl mb-2"></i>
+                <h4 class="text-sm text-slate-400">Appliances</h4>
+                <p class="font-semibold text-slate-100">6 Monitored</p>
+            </div>
+            <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center text-center transform transition-all hover:-translate-y-1 hover:border-success/50"
+                style="animation-delay: 0.3s;">
+                <i class="fa-solid fa-shield-halved text-success text-2xl mb-2"></i>
+                <h4 class="text-sm text-slate-400">Precision</h4>
+                <p class="font-semibold text-slate-100">High Score R²</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Typing effect logic
+    document.addEventListener("DOMContentLoaded", () => {
+        const textElement = document.getElementById("typed-text");
+        const phrases = [
+            "Predict energy bills with AI accuracy.",
+            "Optimize graph-based temporal data.",
+            "Reduce residential power consumption."
+        ];
+
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+
+            if (isDeleting) {
+                textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typingSpeed = isDeleting ? 40 : 80;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typingSpeed = 2000; // Pause at end of phrase
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typingSpeed = 500; // Pause before new phrase starts
+            }
+
+            setTimeout(type, typingSpeed);
+        }
+
+        setTimeout(type, 1000); // Start delay
+    });
+</script>
+{% endblock %}

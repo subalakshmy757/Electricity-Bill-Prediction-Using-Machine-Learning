@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <div
+            class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 mb-4 animate-float">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-primary"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-white mb-2">Dataset Initialization</h2>
+        <p class="text-slate-400">Upload your raw `<span class="text-secondary">.csv</span>` electricity usage dataset
+            to trigger the PyTorch training pipeline and optimize the Adjacency Matrix.</p>
+    </div>
+
+    <!-- Drag & Drop Upload Form -->
+    <div class="glass-card p-1">
+        <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form"
+            class="bg-cardBg rounded-[18px] p-8 sm:p-12 relative overflow-hidden group transition-all duration-300">
+            <!-- Background pulse hover effect -->
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[18px]">
+            </div>
+
+            <div class="relative z-10 flex flex-col items-center justify-center" id="drop-zone">
+                <i class="fa-solid fa-file-csv text-6xl text-slate-500 mb-6 group-hover:text-primary transition-colors duration-300 drop-shadow-lg"
+                    id="upload-icon"></i>
+
+                <h3 class="text-xl font-semibold text-slate-200 mb-2" id="upload-title">Drag & Drop your CSV file</h3>
+                <p class="text-sm text-slate-400 mb-8" id="upload-subtitle">or click to browse from your computer</p>
+
+                <input type="file" name="file" id="file" accept=".csv" required
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+
+                <div class="hidden items-center gap-3 w-full bg-slate-800/80 p-4 rounded-xl border border-success/30"
+                    id="file-info">
+                    <i class="fa-solid fa-file-check text-2xl text-success"></i>
+                    <div class="flex-grow overflow-hidden text-left">
+                        <p class="text-sm font-medium text-white truncate" id="file-name">filename.csv</p>
+                        <p class="text-xs text-slate-400" id="file-size">1.2 MB</p>
+                    </div>
+                    <button type="button" id="remove-file"
+                        class="text-slate-400 hover:text-red-400 transition-colors z-30 relative px-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="mt-8 w-full">
+                    <button type="submit" id="submit-btn"
+                        class="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed hidden">
+                        <i class="fa-solid fa-gears mr-2"></i> Initialize Training Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State (Hidden by default) -->
+            <div id="loader"
+                class="absolute inset-0 bg-cardBg/95 backdrop-blur-md flex flex-col items-center justify-center z-50 rounded-[18px] opacity-0 pointer-events-none transition-opacity duration-300">
+                <div class="loader-spinner mb-6"></div>
+                <h3 class="text-lg font-semibold text-primary mb-2">Training Neural Network...</h3>
+                <p class="text-sm text-slate-300 animate-pulse text-center px-6">Optimizing Spatial-Temporal Features
+                    and updating Adjacency Matrix metrics. This may take a moment.</p>
+                <!-- Simulated progress bar -->
+                <div class="w-2/3 h-2 bg-slate-800 rounded-full mt-6 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-[3000ms] "
+                        style="width: 0%" id="progress-bar"></div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Alert Message handling -->
+    {% if message %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                title: 'Training Complete!',
+                text: "{{ message }}",
+                icon: 'success',
+                confirmButtonText: 'View Performance',
+                background: '#1e293b',
+                color: '#f8fafc',
+                confirmButtonColor: '#00f2fe',
+                iconColor: '#10b981',
+                backdrop: `rgba(0,0,0,0.6)`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/performance';
+                }
+            });
+        });
+    </script>
+    {% endif %}
+</div>
+
+<script>
+    // File upload interactions
+    const fileInput = document.getElementById('file');
+    const dropZone = document.getElementById('drop-zone');
+    const uploadIcon = document.getElementById('upload-icon');
+    const uploadTitle = document.getElementById('upload-title');
+    const uploadSubtitle = document.getElementById('upload-subtitle');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const submitBtn = document.getElementById('submit-btn');
+    const removeFileBtn = document.getElementById('remove-file');
+    const form = document.getElementById('upload-form');
+    const loader = document.getElementById('loader');
+    const progressBar = document.getElementById('progress-bar');
+
+    fileInput.addEventListener('change', function (e) {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+
+            if (!file.name.endsWith('.csv')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid File',
+                    text: 'Please upload a CSV file format.',
+                    background: '#1e293b',
+                    color: '#f8fafc',
+                    confirmButtonColor: '#f43f5e'
+                });
+                this.value = '';
+                return;
+            }
+
+            // Hide initial elements
+            uploadIcon.classList.add('hidden');
+            uploadTitle.classList.add('hidden');
+            uploadSubtitle.classList.add('hidden');
+
+            // Format file size
+            let size = file.size / 1024; // KB
+            let sizeStr = size > 1024 ? (size / 1024).toFixed(2) + ' MB' : size.toFixed(2) + ' KB';
+
+            fileName.textContent = file.name;
+            fileSize.textContent = sizeStr;
+
+            // Show new elements
+            fileInfo.classList.remove('hidden');
+            fileInfo.classList.add('flex');
+            submitBtn.classList.remove('hidden');
+            fileInput.classList.add('hidden'); // Disable dropping a new file immediately over it
+        }
+    });
+
+    removeFileBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        fileInput.value = '';
+        fileInput.classList.remove('hidden');
+
+        fileInfo.classList.add('hidden');
+        fileInfo.classList.remove('flex');
+        submitBtn.classList.add('hidden');
+
+        uploadIcon.classList.remove('hidden');
+        uploadTitle.classList.remove('hidden');
+        uploadSubtitle.classList.remove('hidden');
+    });
+
+    // Handle drag and drop visuals
+    ['dragenter', 'dragover'].forEach(eventName => {
+        form.addEventListener(eventName, preventDefaults, false);
+        form.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        form.addEventListener(eventName, preventDefaults, false);
+        form.addEventListener(eventName, unhighlight, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        form.classList.add('ring-2', 'ring-primary', 'bg-slate-800/50');
+        uploadIcon.classList.add('text-primary', 'scale-110');
+    }
+
+    function unhighlight(e) {
+        form.classList.remove('ring-2', 'ring-primary', 'bg-slate-800/50');
+        uploadIcon.classList.remove('text-primary', 'scale-110');
+    }
+
+    // Loader on submit
+    form.addEventListener('submit', function (e) {
+        loader.classList.remove('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+            progressBar.style.width = '95%';
+        }, 100);
+    });
+</script>
+{% endblock %}

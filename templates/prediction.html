@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto">
+
+    <div class="text-center mb-10">
+        <div
+            class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 mb-4 animate-float">
+            <i class="fa-solid fa-calculator text-3xl text-primary"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-white mb-2">Energy Prediction Engine</h2>
+        <p class="text-slate-400">Input your expected daily appliance usage across the nodes to generate a highly
+            precise temporal-spatial forecast.</p>
+    </div>
+
+    <form method="post" action="/predict" class="glass-card p-6 sm:p-10 relative overflow-hidden group">
+        <!-- Decoration light -->
+        <div class="absolute -top-32 -right-32 w-64 h-64 bg-primary/20 rounded-full blur-[80px] pointer-events-none">
+        </div>
+        <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-accent/20 rounded-full blur-[80px] pointer-events-none">
+        </div>
+
+        <!-- Inputs Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+
+            <!-- Fan -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-primary/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-primary group-hover/item:text-white group-hover/item:bg-primary transition-colors">
+                        <i class="fa-solid fa-fan text-xl group-hover/item:animate-spin"></i>
+                    </div>
+                    Fan
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="fan" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+            <!-- Fridge -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-secondary/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-secondary group-hover/item:text-white group-hover/item:bg-secondary transition-colors">
+                        <i class="fa-solid fa-snowflake text-xl"></i>
+                    </div>
+                    Refrigerator
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="fridge" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+            <!-- AC -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-blue-400/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-blue-400/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-blue-400 group-hover/item:text-white group-hover/item:bg-blue-400 transition-colors">
+                        <i class="fa-solid fa-wind text-xl"></i>
+                    </div>
+                    Air Conditioner
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="ac" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+            <!-- TV -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-accent/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-accent group-hover/item:text-white group-hover/item:bg-accent transition-colors">
+                        <i class="fa-solid fa-tv text-xl"></i>
+                    </div>
+                    Television
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="tv" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+            <!-- Monitor -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-indigo-400/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-indigo-400/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-indigo-400 group-hover/item:text-white group-hover/item:bg-indigo-400 transition-colors">
+                        <i class="fa-solid fa-desktop text-xl"></i>
+                    </div>
+                    Monitor
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="monitor" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+            <!-- Motor Pump -->
+            <div
+                class="bg-cardBg/50 border border-cardBorder rounded-xl p-5 hover:border-teal-400/50 transition-colors group/item relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-teal-400/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                </div>
+                <label
+                    class="flex items-center gap-3 text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider relative z-10">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-teal-400 group-hover/item:text-white group-hover/item:bg-teal-400 transition-colors">
+                        <i class="fa-solid fa-faucet-drip text-xl"></i>
+                    </div>
+                    Motor Pump
+                </label>
+                <div class="relative z-10">
+                    <input type="number" step="0.1" name="motor" placeholder="Hours / Day" required
+                        class="glass-input pl-4 pr-12 text-lg font-mono">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">hr</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-10 flex justify-center relative z-10">
+            <button type="submit" class="btn-primary w-full max-w-md py-4 text-lg">
+                <i class="fa-solid fa-wand-magic-sparkles mr-2 text-xl"></i> Generate TGCN Forecast
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
