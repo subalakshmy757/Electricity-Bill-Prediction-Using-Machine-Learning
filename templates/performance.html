@@ -85,8 +85,19 @@
 
             <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">R² Score (Accuracy)</h3>
             <div class="text-4xl font-bold text-white font-mono flex items-baseline">
-                0.942 <span class="text-success text-sm ml-2 font-sans font-normal flex items-center"><i
+                {{ r2 | default('N/A', true) }}
+                {% if r2 is defined and r2 is number %}
+                {% if r2 >= 0.9 %}
+                <span class="text-success text-sm ml-2 font-sans font-normal flex items-center"><i
                         class="fa-solid fa-arrow-up mr-1"></i> Excellent</span>
+                {% elif r2 >= 0.7 %}
+                <span class="text-yellow-400 text-sm ml-2 font-sans font-normal flex items-center"><i
+                        class="fa-solid fa-minus mr-1"></i> Good</span>
+                {% else %}
+                <span class="text-red-400 text-sm ml-2 font-sans font-normal flex items-center"><i
+                        class="fa-solid fa-arrow-down mr-1"></i> Needs Improvement</span>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
@@ -146,86 +157,88 @@
     </div>
 </div>
 
+<!-- Hidden element to pass backend value to JS without Jinja2 inside script -->
+<div id="rmse-data" data-rmse="{{ rmse | default(0.25, true) }}" class="hidden"></div>
+
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", function () {
         // Model Comparison Chart (Bar Chart)
-        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        var ctx = document.getElementById('comparisonChart').getContext('2d');
 
-        // Grab values from backend if available, or generate display values
-        const tgcnRmse = {{ rmse | default (0.25, true)
-    }};
-    // Simulated comparison numbers based on typical benchmark literature
-    const lstmRmse = tgcnRmse * 1.6;
-    const rfRmse = tgcnRmse * 2.1;
-    const svrRmse = tgcnRmse * 2.8;
+        // Grab RMSE value from data attribute
+        var tgcnRmse = parseFloat(document.getElementById('rmse-data').getAttribute('data-rmse'));
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['SVR', 'Random Forest', 'LSTM', 'Our model (TGCN)'],
-            datasets: [{
-                label: 'RMSE Error Rate',
-                data: [svrRmse, rfRmse, lstmRmse, tgcnRmse],
-                backgroundColor: [
-                    'rgba(241, 245, 249, 0.1)', // Slate
-                    'rgba(241, 245, 249, 0.2)', // Slate lighter
-                    'rgba(148, 163, 184, 0.3)', // Slate medium
-                    'rgba(0, 242, 254, 0.8)'    // Primary highlight
-                ],
-                borderColor: [
-                    'rgba(255, 255, 255, 0.1)',
-                    'rgba(255, 255, 255, 0.1)',
-                    'rgba(255, 255, 255, 0.2)',
-                    '#00f2fe'
-                ],
-                borderWidth: 2,
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y', // Horizontal bar chart
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    titleColor: '#f8fafc',
-                    bodyColor: '#00f2fe',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1,
-                    padding: 12,
-                    cornerRadius: 8,
-                    callbacks: {
-                        label: function (context) {
-                            return ` RMSE: ${context.raw.toFixed(4)}`;
+        // Simulated comparison numbers based on typical benchmark literature
+        var lstmRmse = tgcnRmse * 1.6;
+        var rfRmse = tgcnRmse * 2.1;
+        var svrRmse = tgcnRmse * 2.8;
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['SVR', 'Random Forest', 'LSTM', 'Our model (TGCN)'],
+                datasets: [{
+                    label: 'RMSE Error Rate',
+                    data: [svrRmse, rfRmse, lstmRmse, tgcnRmse],
+                    backgroundColor: [
+                        'rgba(241, 245, 249, 0.1)',
+                        'rgba(241, 245, 249, 0.2)',
+                        'rgba(148, 163, 184, 0.3)',
+                        'rgba(0, 242, 254, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 255, 255, 0.1)',
+                        'rgba(255, 255, 255, 0.1)',
+                        'rgba(255, 255, 255, 0.2)',
+                        '#00f2fe'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#00f2fe',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function (context) {
+                                return ' RMSE: ' + context.raw.toFixed(4);
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                    title: { display: true, text: 'Root Mean Square Error', color: '#64748b' }
                 },
-                y: {
-                    grid: { display: false },
-                    ticks: {
-                        font: { family: "'Inter', sans-serif", weight: 'bold' },
-                        color: function (context) {
-                            // Highlight last label
-                            return context.index === 3 ? '#00f2fe' : '#94a3b8';
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        title: { display: true, text: 'Root Mean Square Error', color: '#64748b' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: "'Inter', sans-serif", weight: 'bold' },
+                            color: function (context) {
+                                return context.index === 3 ? '#00f2fe' : '#94a3b8';
+                            }
                         }
                     }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutBack'
                 }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeOutBack' // Add a little bounce
             }
-        }
-    });
+        });
     });
 </script>
 {% endblock %}

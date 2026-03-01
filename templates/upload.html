@@ -71,20 +71,26 @@
 
     <!-- Alert Message handling -->
     {% if message %}
+    <div id="alert-data" data-message="{{ message }}" class="hidden"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            var msg = document.getElementById('alert-data').getAttribute('data-message');
+            var isError = msg.toLowerCase().indexOf('error') !== -1 ||
+                msg.toLowerCase().indexOf('failed') !== -1 ||
+                msg.toLowerCase().indexOf('invalid') !== -1 ||
+                msg.toLowerCase().indexOf('missing') !== -1;
             Swal.fire({
-                title: 'Training Complete!',
-                text: "{{ message }}",
-                icon: 'success',
-                confirmButtonText: 'View Performance',
+                title: isError ? 'Error' : 'Training Complete!',
+                text: msg,
+                icon: isError ? 'error' : 'success',
+                confirmButtonText: isError ? 'Try Again' : 'View Performance',
                 background: '#1e293b',
                 color: '#f8fafc',
-                confirmButtonColor: '#00f2fe',
-                iconColor: '#10b981',
-                backdrop: `rgba(0,0,0,0.6)`
-            }).then((result) => {
-                if (result.isConfirmed) {
+                confirmButtonColor: isError ? '#f43f5e' : '#00f2fe',
+                iconColor: isError ? '#f43f5e' : '#10b981',
+                backdrop: 'rgba(0,0,0,0.6)'
+            }).then(function (result) {
+                if (result.isConfirmed && !isError) {
                     window.location.href = '/performance';
                 }
             });
