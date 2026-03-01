@@ -13,6 +13,8 @@ matplotlib.use("Agg")  # Non-interactive backend for server-side rendering
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from utils import calculate_price
+
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
@@ -134,11 +136,12 @@ def predict(
             prediction_original = prediction_normalized
 
         total = float(np.sum(prediction_original))
+        price = calculate_price(total*100)
 
-        logger.info(f"Prediction successful: total={total:.4f}")
+        logger.info(f"Prediction successful: total={total:.4f}, price=₹{price:.2f}")
         return templates.TemplateResponse(
             "result.html",
-            {"request": request, "prediction": round(total, 4)}
+            {"request": request, "prediction": round(total, 4), "price": round(price, 2)}
         )
 
     except Exception as e:
