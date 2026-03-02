@@ -33,6 +33,29 @@ def test_training():
     print(f"[PASS] Training: MAE={mae:.4f}, RMSE={rmse:.4f}, R²={r2:.4f}")
 
 
+def test_upload():
+    """Test the dataset upload and training endpoint."""
+    from fastapi.testclient import TestClient
+    from app import app
+    import os
+
+    client = TestClient(app)
+    sample_file_path = "data/ALEC_sample_dataset.csv"
+
+    # Ensure the sample file exists
+    assert os.path.exists(sample_file_path), "Sample dataset not found for testing"
+
+    with open(sample_file_path, "rb") as f:
+        response = client.post(
+            "/upload",
+            files={"file": ("ALEC_sample_dataset.csv", f, "text/csv")}
+        )
+
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+    assert "Training complete!" in response.text, "Success message not found in response"
+    print("[PASS] Upload endpoint test")
+
+
 def test_imports():
     """Test all app imports."""
     import app  # noqa: F401
@@ -47,6 +70,7 @@ if __name__ == "__main__":
     try:
         test_model()
         test_training()
+        test_upload()
         test_imports()
         print("=" * 50)
         print("All tests passed!")
